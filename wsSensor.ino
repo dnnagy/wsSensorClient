@@ -88,9 +88,19 @@ void interruptRoutine() {
 }
 
 void ICACHE_FLASH_ATTR setupSensor() {
+
   //indicator led
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, 0);
+
+  //Start I2C with pins defined above
+  Wire.begin(APDS9960_SDA,APDS9960_SCL);
+
+  // Set interrupt pin as input
+  pinMode(APDS9960_INT, INPUT);
+  
+  // Initialize interrupt service routine
+  attachInterrupt(APDS9960_INT, interruptRoutine, FALLING);
 
   // Initialize APDS-9960 (configure I2C and initial values)
   if ( apds.init() ) {
