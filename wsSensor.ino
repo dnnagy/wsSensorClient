@@ -38,6 +38,12 @@ static const uint8_t D8 = 15; // SPI Bus SS (CS)
 static const uint8_t D9 = 3; // RX0 (Serial console)
 static const uint8_t D10 = 1; // TX0 (Serial console)
 
+// Pins on wemos D1 mini
+#define APDS9960_INT    D6  //AKA GPIO12 -- Interupt pin
+#define APDS9960_SDA    D2  //AKA GPIO0
+#define APDS9960_SCL    D1  //AKA GPIO5
+#define LED_PIN D5 //indicator led
+
 //Initialize ws client
 WebSocketsClient webSocket;
 
@@ -71,6 +77,40 @@ void ICACHE_FLASH_ATTR configModeCallback (WiFiManager *myWiFiManager) {
         Serial.println(myWiFiManager->getConfigPortalSSID());
 }
 
+/**
+  * APDS-9960 sensor initialization
+  */
+SparkFun_APDS9960 apds = SparkFun_APDS9960();
+volatile bool isr_flag = 0;
+
+void interruptRoutine() {
+  isr_flag = 1;
+}
+
+void ICACHE_FLASH_ATTR setupSensor() {
+  //indicator led
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, 0);
+
+  // Initialize APDS-9960 (configure I2C and initial values)
+  if ( apds.init() ) {
+    Serial.println(F("APDS-9960 initialization complete"));
+    digitalWrite(LED_PIN, 1);
+  } else {
+    Serial.println(F("Something went wrong during APDS-9960 init!"));
+    digitalWrite(LED_PIN, 0);
+  }
+
+  // Start running the APDS-9960 gesture sensor engine
+  if ( apds.enableGestureSensor(true) ) {
+    Serial.println(F("Gesture sensor is now running"));
+    digitalWrite(LED_PIN, 1);
+  } else {
+    Serial.println(F("Something went wrong during gesture sensor init!"));
+    digitalWrite(LED_PIN, 0);
+  }
+}
+
 void setup() {
         Serial.begin(115200);
         /* Wifi debug messages */
@@ -101,11 +141,15 @@ void setup() {
         }
 
         Serial.printf("Success! Connected to WiFi, credentails saved. \n");
-        Serial.printf("Trying to connect to websocket backend: %s:%s ...\n", BACKEND_HOST, BACKEND_WS_PORT);
-        webSocket.begin(BACKEND_HOST, BACKEND_WS_PORT);
-        webSocket.onEvent(webSocketEvent);
+        Serial.printf("Trying to connect to websocket backend...\n");
+
+        //webSocket.begin(BACKEND_HOST, BACKEND_WS_PORT);
+        //webSocket.onEvent(webSocketEvent);
+
+        //set up APDS-9960 sensor for gesture sensing
+        setupSensor();
 }
 
 void loop() {
-      webSocket.loop();
+      //webSocket.loop();
 }
