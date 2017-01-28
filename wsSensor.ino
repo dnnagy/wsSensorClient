@@ -103,3 +103,7 @@ void setup() {
         webSocket.begin(BACKEND_HOST, BACKEND_WS_PORT);
         webSocket.onEvent(webSocketEvent);
 }
+
+void loop() {
+      webSocket.loop();
+}
