@@ -41,7 +41,7 @@ static const uint8_t D10 = 1; // TX0 (Serial console)
 //Initialize ws client
 WebSocketsClient webSocket;
 
-void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
+void ICACHE_FLASH_ATTR webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
         switch(type) {
         case WStype_DISCONNECTED: {
                 Serial.printf("[WSc] Disconnected!\n");
@@ -63,7 +63,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
 }
 
 //gets called when WiFiManager enters configuration mode
-void configModeCallback (WiFiManager *myWiFiManager) {
+void ICACHE_FLASH_ATTR configModeCallback (WiFiManager *myWiFiManager) {
         Serial.println("Entered config mode");
         Serial.println(WiFi.softAPIP());
 
@@ -100,6 +100,8 @@ void setup() {
                 delay(5000);
         }
 
+        Serial.printf("Success! Connected to WiFi, credentails saved. \n");
+        Serial.printf("Trying to connect to websocket backend: %s:%s ...\n", BACKEND_HOST, BACKEND_WS_PORT);
         webSocket.begin(BACKEND_HOST, BACKEND_WS_PORT);
         webSocket.onEvent(webSocketEvent);
 }
